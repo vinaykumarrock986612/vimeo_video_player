@@ -88,6 +88,12 @@ class VimeoVideoPlayer extends StatelessWidget {
     WebResourceError error,
   )? onInAppWebViewReceivedError;
 
+  /// Defines a callback function triggered when the WebView enters full screen
+  final void Function(InAppWebViewController controller)? onEnterFullscreen;
+
+  /// Defines a callback function triggered when the WebView exits full screen
+  final void Function(InAppWebViewController controller)? onExitFullscreen;
+
   VimeoVideoPlayer({
     super.key,
     required this.videoId,
@@ -108,6 +114,8 @@ class VimeoVideoPlayer extends StatelessWidget {
     this.onInAppWebViewLoadStart,
     this.onInAppWebViewLoadStop,
     this.onInAppWebViewReceivedError,
+    this.onEnterFullscreen,
+    this.onExitFullscreen,
   }) : assert(videoId.isNotEmpty, 'videoId cannot be empty!');
 
   @override
@@ -133,6 +141,8 @@ class VimeoVideoPlayer extends StatelessWidget {
       onLoadStart: onInAppWebViewLoadStart,
       onLoadStop: onInAppWebViewLoadStop,
       onReceivedError: onInAppWebViewReceivedError,
+      onEnterFullscreen: onEnterFullscreen,
+      onExitFullscreen: onEnterFullscreen,
     );
   }
 
