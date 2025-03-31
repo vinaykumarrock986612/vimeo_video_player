@@ -142,7 +142,7 @@ class VimeoVideoPlayer extends StatelessWidget {
       onLoadStop: onInAppWebViewLoadStop,
       onReceivedError: onInAppWebViewReceivedError,
       onEnterFullscreen: onEnterFullscreen,
-      onExitFullscreen: onEnterFullscreen,
+      onExitFullscreen: onExitFullscreen,
     );
   }
 
