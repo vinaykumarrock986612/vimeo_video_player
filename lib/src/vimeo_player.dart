@@ -66,6 +66,9 @@ class VimeoVideoPlayer extends StatelessWidget {
   /// Defines a callback function triggered when the video playback position is modified
   final VoidCallback? onSeek;
 
+  /// Defines a callback function that notifies current video position
+  final ValueChanged<double>? currentPositionInSeconds;
+
   /// Defines a callback function triggered when the WebView is created
   final Function(InAppWebViewController controller)? onInAppWebViewCreated;
 
@@ -116,6 +119,7 @@ class VimeoVideoPlayer extends StatelessWidget {
     this.onInAppWebViewReceivedError,
     this.onEnterFullscreen,
     this.onExitFullscreen,
+    this.currentPositionInSeconds,
   }) : assert(videoId.isNotEmpty, 'videoId cannot be empty!');
 
   @override
@@ -149,54 +153,55 @@ class VimeoVideoPlayer extends StatelessWidget {
   /// Builds the HTML content for the vimeo player
   String _buildHtmlContent() {
     return '''
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            background-color: ${_colorToHex(backgroundColor)};
-          }
-          .video-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-          }
-          iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-          }
-        </style>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <script src="https://player.vimeo.com/api/player.js"></script>
-      </head>
-      <body>
-        <div class="video-container">
-          <iframe 
-            id="player"
-            src="${_buildIframeUrl()}"
-            frameborder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen 
-            webkitallowfullscreen 
-            mozallowfullscreen>
-          </iframe>
-        </div>
-        <script>
-          const player = new Vimeo.Player('player');
-          player.ready().then(() => console.log('vimeo:onReady'));
-          player.on('play', () => console.log('vimeo:onPlay'));
-          player.on('pause', () => console.log('vimeo:onPause'));
-          player.on('ended', () => console.log('vimeo:onFinish'));
-          player.on('seeked', () => console.log('vimeo:onSeek'));
-        </script>
-      </body>
-    </html>
-    ''';
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: ${_colorToHex(backgroundColor)};
+        }
+        .video-container {
+          position: relative;
+          width: 100%;
+          height: 100vh;
+        }
+        iframe {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <script src="https://player.vimeo.com/api/player.js"></script>
+    </head>
+    <body>
+      <div class="video-container">
+        <iframe 
+          id="player"
+          src="${_buildIframeUrl()}"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen 
+          webkitallowfullscreen 
+          mozallowfullscreen>
+        </iframe>
+      </div>
+      <script>
+        const player = new Vimeo.Player('player');
+        player.ready().then(() => console.log('vimeo:onReady'));
+        player.on('play', () => console.log('vimeo:onPlay'));
+        player.on('pause', () => console.log('vimeo:onPause'));
+        player.on('ended', () => console.log('vimeo:onFinish'));
+        player.on('seeked', () => console.log('vimeo:onSeek'));
+        player.on('timeupdate', (data) => console.log('vimeo:currentPosition:' + data.seconds));
+      </script>
+    </body>
+  </html>
+  ''';
   }
 
   /// Builds the iframe URL
@@ -214,6 +219,11 @@ class VimeoVideoPlayer extends StatelessWidget {
   /// Manage vimeo player events received from the WebView
   void _manageVimeoPlayerEvent(String event) {
     debugPrint('Vimeo event: $event');
+    if (event.contains("currentPosition")) {
+      final position = event.split(":").last.trim();
+      currentPositionInSeconds?.call(double.tryParse(position) ?? 0);
+    }
+
     switch (event) {
       case 'onReady':
         onReady?.call();
